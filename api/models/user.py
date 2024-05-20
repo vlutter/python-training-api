@@ -6,3 +6,5 @@ class User(db.Model):
     email = db.Column(db.String(50), unique=True, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     password = db.Column(db.String(100), nullable=False)
+
+    tasks = db.relationship('UserTask', back_populates='user')

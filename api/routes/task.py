@@ -1,3 +1,5 @@
+import json
+
 from flask import jsonify, request
 from api import app, db
 from api.decorators import token_required
@@ -16,17 +18,19 @@ def get_tasks(_):
     return jsonify(groups_with_tasks)
 
 
-@app.route('/tasks/<int:task_id>', methods=['GET'])
+@app.route('/tasks/<task_id>', methods=['GET'])
 @token_required
 def get_task(_, task_id):
     task = Task.query.get(task_id)
     if task:
+        task_tests = json.loads(task.tests)
+
         response = {
             "id": task.id,
             "name": task.name,
             "description": task.description,
             "group_id": task.group_id,
-            "example_data": task.example_data
+            "tests": task_tests
         }
         return jsonify(response)
     return jsonify({"error": "Task not found"}), 404
@@ -49,14 +53,23 @@ def create_group(_):
 @token_required
 def create_task(_):
     data = request.json
+    task_id = data.get('id')
     name = data.get('name')
     description = data.get('description')
-    example_data = data.get('example_data')
+    tests = data.get('tests')
     group_id = data.get('group_id')
+
+    if not tests:
+        tests = []
+
+    print(tests)
+
     if name and group_id:
         group = TaskGroup.query.get(group_id)
         if group:
-            new_task = Task(name=name, description=description, group_id=group_id, example_data=example_data)
+            task_tests = json.dumps(tests)
+            print(task_tests)
+            new_task = Task(id=task_id, name=name, description=description, group_id=group_id, tests=task_tests)
             db.session.add(new_task)
             db.session.commit()
             return jsonify({"message": "Task created successfully"}), 201
@@ -79,7 +92,7 @@ def update_group(_, group_id):
     return jsonify({"error": "Group not found"}), 404
 
 
-@app.route('/tasks/<int:task_id>', methods=['PUT'])
+@app.route('/tasks/<task_id>', methods=['PUT'])
 @token_required
 def update_task(_, task_id):
     task = Task.query.get(task_id)
@@ -88,15 +101,19 @@ def update_task(_, task_id):
         name = data.get('name')
         description = data.get('description')
         group_id = data.get('group_id')
-        example_data = data.get('example_data')
+        tests = data.get('tests')
         if name:
             task.name = name
         if description:
             task.description = description
         if group_id:
             task.group_id = group_id
-        if example_data:
-            task.example_data = example_data
+
+        if tests:
+            task.tests = json.dumps(tests)
+        else:
+            task.tests = json.dumps([])
+
         db.session.commit()
         return jsonify({"message": "Task updated successfully"})
     return jsonify({"error": "Task not found"}), 404
@@ -113,7 +130,7 @@ def delete_group(_, group_id):
     return jsonify({"error": "Group not found"}), 404
 
 
-@app.route('/tasks/<int:task_id>', methods=['DELETE'])
+@app.route('/tasks/<task_id>', methods=['DELETE'])
 @token_required
 def delete_task(_, task_id):
     task = Task.query.get(task_id)

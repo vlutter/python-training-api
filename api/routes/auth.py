@@ -9,8 +9,13 @@ from api.models import User
 def register():
     data = request.get_json()
 
+    existing_user = User.query.filter_by(email=data['email']).first()
+
+    if existing_user:
+        jsonify({'error': 'Пользователь с таким email уже существует'})
+
     hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
-    new_user = User(email=data['email'], name=data['name'], password=hashed_password)
+    new_user = User(email=data['email'], name=data['name'], password=hashed_password, role='user')
     db.session.add(new_user)
     db.session.commit()
 

@@ -1,2 +1,2 @@
 from api.models.user import User
-from api.models.task import Task, TaskGroup
+from api.models.task import Task, TaskGroup, Solution

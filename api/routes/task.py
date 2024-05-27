@@ -92,6 +92,26 @@ def export_tasks(_):
     return jsonify(groups_with_tasks)
 
 
+@app.route('/tasks/import', methods=['POST'])
+@token_required
+@admin_required
+def import_tasks(_):
+    data = request.json
+
+    for group in data:
+        new_group = TaskGroup(id=group['id'], name=group['name'])
+        db.session.add(new_group)
+        db.session.commit()
+
+        for task in group['tasks']:
+            new_task = Task(id=task['id'], name=task['name'], description=task['description'], group_id=group['id'],
+                            tests=task['tests'])
+            db.session.add(new_task)
+            db.session.commit()
+
+    return jsonify({"message": "Tasks imported successfully"}), 201
+
+
 @app.route('/tasks/user/<user_id>', methods=['GET'])
 @token_required
 @admin_required

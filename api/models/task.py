@@ -4,8 +4,8 @@ from api import db
 class Task(db.Model):
     id = db.Column(db.String(100), primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.String(255))
-    tests = db.Column(db.String(2048))
+    description = db.Column(db.String(4096))
+    tests = db.Column(db.String(4096))
     group_id = db.Column(db.Integer, db.ForeignKey('task_group.id'), nullable=False)
 
     group = db.relationship('TaskGroup', back_populates='tasks')

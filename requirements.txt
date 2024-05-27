@@ -5,3 +5,4 @@ SQLAlchemy
 Flask-Migrate
 PyJWT
 python-dotenv
+psycopg2-binary
